@@ -25,17 +25,25 @@ class handDetector():
                     self.mpDraw.draw_landmarks(frame, hand, self.mpHands.HAND_CONNECTIONS)
         return frame
     
-    def findPosition(self, frame, handNo = 0):
+    def findPosition(self, frame, handNo = 0, draw = False):
         lmList = []
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         results = self.hands.process(frame_rgb)
         if  results.multi_hand_landmarks:
             hand = results.multi_hand_landmarks[handNo]
-            # for hand in results.multi_hand_landmarks:
+                # for hand in results.multi_hand_landmarks:
             for id, lm in enumerate(hand.landmark):
                 h, w, c = frame.shape
-                cx, cy = (lm.x * w), (lm.y * h)
+                cx, cy = int(lm.x * w), int(lm.y * h)
                 lmList.append({"id":id, "x":cx, "y":cy})
+                if draw:
+                    if id in ([4, 8, 12, 16, 20]):
+                        cv2.circle(frame, (cx, cy), 15, (255, 0, 0), cv2.FILLED)
+                    if id == 0:
+                        cv2.circle(frame, (cx, cy), 60, (255, 0, 255), cv2.FILLED)
+                        cv2.putText(frame, f'{handNo}', (cx-20, cy+20), cv2.FONT_HERSHEY_PLAIN, 5, (0, 0, 0), 3)
+
+
         return lmList
 
 
@@ -47,9 +55,12 @@ def main():
         while True:
             status, frame = cap.read()
             drawFrame = hand.findHand(frame)
-            position = hand.findPosition(frame)
-            if len(position) != 0:
-                print(position[0])
+            position1 = hand.findPosition(frame, draw=True)
+            if len(position1) != 0:
+                print(f'posiion1 : {position1[0]}')
+            # position2 = hand.findPosition(frame, draw=True, handNo=1)
+            # if len(position2) != 0:
+            #     print(f'posiion2 : {position1[0]}')
             cv2.imshow('Hand', drawFrame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 cv2.destroyAllWindows()
